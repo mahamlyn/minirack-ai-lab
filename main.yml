@@ -19,6 +19,21 @@
     - name: System Preparation | Include system configuration tasks
       ansible.builtin.import_tasks: tasks/system-config.yaml
 
+# ---- Ollama Installation Tasks ----
+- name: Ollama Installation
+  hosts:
+    - ai-core
+  gather_facts: true
+  become: true
+  become_method: ansible.builtin.sudo
+  become_user: root
+  vars_files:
+    - ./config-files/config.yaml
+
+  tasks:
+    - name: Ollama Installation | Include ollama installation tasks
+      ansible.builtin.import_tasks: tasks/app-ollama.yaml
+
 # ---- Docker Installation Tasks ----
 - name: Docker Installation
   hosts:

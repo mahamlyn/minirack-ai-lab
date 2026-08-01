@@ -2,44 +2,66 @@
   <img src="images/github-banner-ai-lab.png" alt="MiniRack AI Lab Header" width="100%">
 </p>
 
-# Overview
+# MiniRack AI Lab
 
-This repository contains the Ansible playbooks used to deploy the MiniRack AI Lab environment.
+This repository contains the Ansible automation used to prepare and deploy the MiniRack AI Lab environment.
 
-The environment is organised into three host groups:
+## Host Groups
 
+The current inventory defines the following groups:
+
+- `all` — all managed hosts
 - `ai-core` — hosts the Ollama runtime and core AI workloads
 - `ai-web` — hosts the web interface and AI harness services
 - `ai-utility` — hosts supporting monitoring and management tooling
 
-# Deployment Flow
+## Deployment Flow
 
-The playbook is structured in two phases:
+The playbook is structured in three phases:
 
-1. General system preparation
+1. System preparation on all hosts
    - package patching and updates
    - base system configuration
    - SSH hardening
 
-2. Targeted application deployment
-   - Docker installation on the web and utility hosts
-   - additional service deployment tasks for the selected host groups
+2. Ollama deployment on the `ai-core` group
+   - the playbook imports the Ollama task file for the `ai-core` hosts
 
-# Manual Deployment
+3. Docker deployment on the `ai-web` and `ai-utility` groups
+   - Docker repository trust setup
+   - Docker Engine and Compose install
+   - Docker service enablement and startup
 
-From the repository root, run:
+## Execution
+
+From the repository root, run either of the following:
 
 ```bash
 ansible-playbook -i inventory/servers.ini main.yml -u localadmin -k -K
 ```
 
-This will prompt for:
+or the repository helper script:
+
+```bash
+./scripts/ansible-execute.bash
+```
+
+Both flows prompt for:
 
 - the SSH password for `localadmin`
 - the sudo password for privilege escalation
 
-# Notes
+## Repository Layout
 
-- The playbook is intended to be run from the repository root.
-- Inventory and host-group targeting are defined in `inventory/servers.ini`.
-- The main orchestration entrypoint is `main.yml`.
+- `main.yml` — orchestration entrypoint
+- `inventory/servers.ini` — host inventory and group mapping
+- `tasks/system-updates.yaml` — package patching and reboot-related actions
+- `tasks/system-config.yaml` — base system settings and SSH hardening
+- `tasks/app-ollama.yaml` — Ollama deployment task file
+- `tasks/app-docker.yaml` — Docker repository, install, and service setup
+
+## Notes
+
+- The playbook should be run from the repository root.
+- The repository currently uses password-based SSH and sudo prompts, so the `-k` and `-K` options are required.
+- The `ai-core` Ollama task file is included in the orchestration flow and should be populated with the final install logic when that deployment is ready.
