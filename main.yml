@@ -1,0 +1,36 @@
+# AI Lab Ansible Playbook
+# This playbook deploys ollama and other AI tools to the specified hosts in the inventory.
+
+# ---- System Preparation Tasks ----
+- name: System Preparation
+  hosts:
+    - all
+  gather_facts: true
+  become: true
+  become_method: ansible.builtin.sudo
+  become_user: root
+  vars_files:
+    - ./config-files/config.yaml
+
+  tasks:
+    - name: System Preparation | Patch and update the system
+      ansible.builtin.import_tasks: tasks/system-updates.yaml
+
+    - name: System Preparation | Include system configuration tasks
+      ansible.builtin.import_tasks: tasks/system-config.yaml
+
+# ---- Docker Installation Tasks ----
+- name: Docker Installation
+  hosts:
+    - ai-web
+    - ai-utility
+  gather_facts: true
+  become: true
+  become_method: ansible.builtin.sudo
+  become_user: root
+  vars_files:
+    - ./config-files/config.yaml
+
+  tasks:
+    - name: Docker Installation | Include docker installation tasks
+      ansible.builtin.import_tasks: tasks/app-docker.yaml
