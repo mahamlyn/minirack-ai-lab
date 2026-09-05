@@ -36,6 +36,37 @@
     group: root
 
 # =============================================================================================================
+# Compute & Storage Validation - Check that the target system has sufficient resources to run OpenWebUI.
+# =============================================================================================================
+
+- name: Check available disk space for Docker image extraction
+  ansible.builtin.shell: |
+    df -Pk /var/lib/docker 2>/dev/null || df -Pk / | awk 'NR>1 {print $4}'
+  register: docker_free_space_kb
+  changed_when: false
+
+- name: Prune stale Docker data when storage is low
+  ansible.builtin.command: docker system prune -af --volumes
+  when: (docker_free_space_kb.stdout_lines | first | int) < 5000000
+  register: docker_prune
+  changed_when: docker_prune.rc == 0
+
+- name: Re-check Docker storage space before pull
+  ansible.builtin.shell: |
+    df -Pk /var/lib/docker 2>/dev/null || df -Pk / | awk 'NR>1 {print $4}'
+  register: docker_free_space_after_prune
+  changed_when: false
+
+- name: Ensure Docker has enough free space for image extraction
+  ansible.builtin.assert:
+    that:
+      - (docker_free_space_after_prune.stdout_lines | first | int) >= 5000000
+    fail_msg: >-
+      Docker does not have enough free space for the Open WebUI image on {{ ansible_hostname }}.
+      Free space is {{ (docker_free_space_after_prune.stdout_lines | first | int) // 1024 }} MB.
+      Free at least 5 GB before re-running the deployment.
+
+# =============================================================================================================
 # Docker Compose - Use Docker Compose to deploy the OpenWebUI service.
 # =============================================================================================================
 
