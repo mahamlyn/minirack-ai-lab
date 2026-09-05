@@ -6,19 +6,11 @@
 # Dependancies - Ensure that the necessary dependancies for OpenWebUI installation are met.
 # =============================================================================================================
 
-- name: Ensure Docker and dependencies are installed
-  ansible.builtin.apt:
-    name:
-      - docker.io
-      - python3-pip
-    state: present
-    update_cache: true
-  when: ansible_os_family == "Debian"
-
-- name: Ensure Docker SDK for Python is installed
-  ansible.builtin.pip:
+- name: Ensure Docker service is enabled and started
+  ansible.builtin.service:
     name: docker
-    state: present
+    state: started
+    enabled: true
 
 # =============================================================================================================
 # Environment Preparation - Configure the environment for OpenWebUI installation.
@@ -61,9 +53,9 @@
 - name: Wait for Open WebUI container to be running
   ansible.builtin.command:
     chdir: /data/projects/open-webui
-    cmd: docker compose ps --status running
+    cmd: docker compose ps --format '{{.Service}} {{.State}}'
   register: compose_status
-  until: "'open-webui' in compose_status.stdout and 'running' in compose_status.stdout"
+  until: compose_status.stdout is search('open-webui.*running')
   retries: 30
   delay: 10
   changed_when: false

@@ -1,9 +1,10 @@
 ---
-# Docker Installation - This task will install Docker and Docker Compose on the target system.
-# It will also ensure that the Docker service is enabled and started and create any service accounts needed.
+# Docker Installation - Install Docker and Docker Compose on the target system.
+# It will also ensure that the Docker service is enabled and started, and create any required service accounts.
 
-# --------------------- USER CREATION --------------------
-# Create a user for docker creation and managment
+# =============================================================================================================
+# Docker User Management - Create the local user used for Docker administration.
+# =============================================================================================================
 - name: System Management | Create Docker Admin User
   ansible.builtin.user:
     name: "{{ docker_admin_user }}"
@@ -13,7 +14,9 @@
     create_home: true
     state: present
 
-# --------------------- INSTALL DOCKER DEPENDENCIES --------------------
+# =============================================================================================================
+# Docker Dependencies - Install the packages required to add and use the Docker repository.
+# =============================================================================================================
 - name: Install docker dependencies
   ansible.builtin.apt:
     name:
@@ -74,7 +77,9 @@
   ansible.builtin.apt:
     update_cache: true
 
-# --------------------- INSTALL DOCKER ---------------------
+# =============================================================================================================
+# Docker Engine - Install the Docker engine and Compose plugin on the host.
+# =============================================================================================================
 - name: Install docker engine
   ansible.builtin.apt:
     name:

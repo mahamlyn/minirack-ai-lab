@@ -1,7 +1,8 @@
-# AI Lab Ansible Playbook
-# This playbook deploys ollama and other AI tools to the specified hosts in the inventory.
+# AI Lab Ansible Playbook - This playbook deploys Ollama and other AI tools to the specified hosts in the inventory.
 
-# ---- System Preparation Tasks ----
+# =============================================================================================================
+# System Preparation - Prepare the base operating system and required system configuration.
+# =============================================================================================================
 - name: System Preparation
   hosts:
     - all
@@ -19,7 +20,9 @@
     - name: System Preparation | Include system configuration tasks
       ansible.builtin.import_tasks: tasks/system-config.yaml
 
-# ---- Ollama Installation Tasks ----
+# =============================================================================================================
+# Ollama Installation - Install the Ollama runtime and required model configuration for the AI core host.
+# =============================================================================================================
 - name: Ollama Installation
   hosts:
     - ai-core
@@ -34,7 +37,9 @@
     - name: Ollama Installation | Include ollama installation tasks
       ansible.builtin.import_tasks: tasks/app-ollama.yaml
 
-# ---- Docker Installation Tasks ----
+# =============================================================================================================
+# Docker Installation - Install Docker and the required runtime components on the application hosts.
+# =============================================================================================================
 - name: Docker Installation
   hosts:
     - ai-web
@@ -49,3 +54,20 @@
   tasks:
     - name: Docker Installation | Include docker installation tasks
       ansible.builtin.import_tasks: tasks/app-docker.yaml
+
+# =============================================================================================================
+# Open WebUI Installation - Deploy the Open WebUI application stack on the configured web host.
+# =============================================================================================================
+- name: Open WebUI Installation
+  hosts:
+    - ai-web
+  gather_facts: true
+  become: true
+  become_method: ansible.builtin.sudo
+  become_user: root
+  vars_files:
+    - ./config-files/config.yaml
+  
+  tasks:
+    - name: Open WebUI Installation | Include openweb installation tasks
+      ansible.builtin.import_tasks: tasks/app-openweb.yaml

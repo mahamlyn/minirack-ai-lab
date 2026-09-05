@@ -1,7 +1,9 @@
 ---
-# System Configuration - This task will perform some basic system configuration tasks.
+# System Configuration - Apply the standard operating system hardening and required base configuration.
 
-# --------------------- INSTALL BASIC PACKAGES --------------------
+# =============================================================================================================
+# Base Packages - Install the base packages required for the lab environment.
+# =============================================================================================================
 - name: Install packages
   ansible.builtin.apt:
     name:
@@ -10,13 +12,16 @@
       - unzip
       - net-tools
 
-# --------------------- SYSTEM MANAGEMENT TASKS --------------------
+# =============================================================================================================
+# Timezone Configuration - Set the system timezone for the host.
+# =============================================================================================================
 - name: System Management | Configure the timezone
   community.general.timezone:
     name: 'Australia/Adelaide'
 
-# --------------------- UPDATE SSHD_CONFIG --------------------
-# Stop the SSH service
+# =============================================================================================================
+# SSH Configuration - Harden SSH access and apply the standard login restrictions for the lab.
+# =============================================================================================================
 - name: Services | Stop ssh Service
   ansible.builtin.service:
     name: ssh
