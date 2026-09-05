@@ -1,0 +1,15 @@
+# Open WebUI stack for local AI chat access using the Ollama backend.
+# This compose file runs a lightweight Open WebUI instance.
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    restart: unless-stopped
+    ports:
+      - "3000:8080"
+    environment:
+      # This should be updatd to point to your "data" server IP address and port where Ollama is running.
+      OLLAMA_BASE_URL: http://192.168.1.160:11434
+      WEBUI_AUTH: "False"
+    volumes:
+      - ./data:/app/backend/data

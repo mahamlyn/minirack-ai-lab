@@ -1,5 +1,7 @@
 ---
-# Ollama Installation - Install the Ollama runtime and ensure the service is active.
+# =============================================================================================================
+# Ollama Pre-Requisites - Ensure that the necessary prerequisites for Ollama installation are met.
+# =============================================================================================================
 
 - name: Install curl prerequisite
   ansible.builtin.apt:
@@ -7,6 +9,10 @@
       - curl
     state: present
     update_cache: true
+
+# =============================================================================================================
+# Ollama Installation - Download and install the Ollama runtime from the official source.
+# =============================================================================================================
 
 - name: Download Ollama installation script from the controller
   ansible.builtin.get_url:
@@ -28,8 +34,59 @@
     cmd: /tmp/install-ollama.sh
     creates: /usr/local/bin/ollama
 
-- name: Ensure Ollama service is enabled and started
+- name: Create Ollama systemd override directory
+  ansible.builtin.file:
+    path: /etc/systemd/system/ollama.service.d
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Install Ollama systemd override
+  ansible.builtin.template:
+    src: ../config-files/ollama-systemd-override.conf
+    dest: /etc/systemd/system/ollama.service.d/override.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Reload systemd and restart Ollama service
   ansible.builtin.systemd:
     name: ollama
-    state: started
+    state: restarted
     enabled: true
+    daemon_reload: true
+
+# =============================================================================================================
+# Ollama Configuration - Configure Ollama to use the specified AI model and display the current configuration.
+# =============================================================================================================
+
+- name: Check installed Ollama models
+  ansible.builtin.command:
+    cmd: ollama list --quiet
+  register: ollama_list
+  changed_when: false
+  failed_when: false
+
+- name: Pull configured AI model
+  ansible.builtin.command:
+    cmd: "ollama pull {{ ollama_model }}"
+  when: ollama_model not in ollama_list.stdout
+  register: model_pull
+  changed_when: model_pull.rc == 0
+  failed_when: model_pull.rc != 0
+
+# =============================================================================================================
+# Ollama Debugging - Display the current Ollama configuration for verification.
+# =============================================================================================================
+
+- name: Show current Ollama configuration
+  ansible.builtin.command:
+    cmd: ollama config
+  register: ollama_config
+  changed_when: false
+  failed_when: false
+
+- name: Debug Ollama configuration
+  ansible.builtin.debug:
+    var: ollama_config.stdout

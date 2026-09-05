@@ -1,0 +1,81 @@
+---
+# OpenWebUI - This task will install OpenWebUI on the target system.
+# It will also ensure that the OpenWebUI service is enabled and started.
+
+# =============================================================================================================
+# Dependancies - Ensure that the necessary dependancies for OpenWebUI installation are met.
+# =============================================================================================================
+
+- name: Ensure Docker and dependencies are installed
+  ansible.builtin.apt:
+    name:
+      - docker.io
+      - python3-pip
+    state: present
+    update_cache: true
+  when: ansible_os_family == "Debian"
+
+- name: Ensure Docker SDK for Python is installed
+  ansible.builtin.pip:
+    name: docker
+    state: present
+
+# =============================================================================================================
+# Environment Preparation - Configure the environment for OpenWebUI installation.
+# =============================================================================================================
+
+- name: Create Open WebUI project directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+  loop:
+    - /data/projects/open-webui
+    - /data/projects/open-webui/data
+
+- name: Copy Open WebUI docker-compose file to project directory
+  ansible.builtin.copy:
+    src: ../config-files/open-webui/docker-compose.yaml
+    dest: /data/projects/open-webui/docker-compose.yaml
+    mode: '0644'
+    owner: root
+    group: root
+
+# =============================================================================================================
+# Docker Compose - Use Docker Compose to deploy the OpenWebUI service.
+# =============================================================================================================
+
+- name: Start Open WebUI with Docker Compose
+  ansible.builtin.command:
+    chdir: /data/projects/open-webui
+    cmd: docker compose up -d
+  register: openwebui_compose
+  changed_when: openwebui_compose.rc == 0
+
+# =============================================================================================================
+# Validation - Confirm that the OpenWebUI service is running and accessible.
+# =============================================================================================================
+
+- name: Wait for Open WebUI container to be running
+  ansible.builtin.command:
+    chdir: /data/projects/open-webui
+    cmd: docker compose ps --status running
+  register: compose_status
+  until: "'open-webui' in compose_status.stdout and 'running' in compose_status.stdout"
+  retries: 30
+  delay: 10
+  changed_when: false
+
+- name: Wait for Open WebUI HTTP endpoint to respond
+  ansible.builtin.uri:
+    url: http://127.0.0.1:3000
+    method: GET
+    status_code: 200
+    return_content: false
+  register: openwebui_http
+  until: openwebui_http.status == 200
+  retries: 30
+  delay: 5
+  changed_when: false
