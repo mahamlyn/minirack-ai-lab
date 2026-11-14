@@ -1,0 +1,70 @@
+---
+# Tasks to install Hermes agent
+
+- name: Check for existing Hermes agent
+  ansible.builtin.command:
+    cmd: command -v hermes-agent
+  register: hermes_installed
+  failed_when: false
+  changed_when: false
+
+- name: Download Hermes install script
+  ansible.builtin.get_url:
+    url: https://hermes-agent.nousresearch.com/install.sh
+    dest: /tmp/hermes-install.sh
+    mode: '0755'
+    # Optional checksum variable (set in play or inventory): hermes_install_checksum
+    checksum: "{{ hermes_install_checksum | default(omit) }}"
+  when: hermes_installed.rc != 0
+  become: true
+
+- name: Show downloaded installer info
+  ansible.builtin.stat:
+    path: /tmp/hermes-install.sh
+  register: hermes_installer_stat
+  when: hermes_installed.rc != 0
+  changed_when: false
+
+- name: Print installer download details
+  ansible.builtin.debug:
+    msg: >-
+      Hermes installer present: {{ hermes_installer_stat.stat.exists }}; size={{ hermes_installer_stat.stat.size | default(0) }} bytes; mode={{ hermes_installer_stat.stat.mode | default('') }}
+  when: hermes_installed.rc != 0
+  changed_when: false
+
+- name: Run Hermes install script
+  ansible.builtin.command:
+    cmd: /bin/bash /tmp/hermes-install.sh
+  when: hermes_installed.rc != 0
+  become: true
+  register: hermes_install
+  changed_when: hermes_install.rc == 0
+
+- name: Show Hermes installer output
+  ansible.builtin.debug:
+    msg: >-
+      Hermes installer rc={{ hermes_install.rc }} stdout={{ hermes_install.stdout_lines | default([]) }} stderr={{ hermes_install.stderr_lines | default([]) }}
+  when: hermes_installed.rc != 0
+  changed_when: false
+
+- name: Verify Hermes installation
+  ansible.builtin.command:
+    cmd: hermes-agent --version
+  register: hermes_version
+  failed_when: hermes_version.rc != 0
+  changed_when: false
+  when: hermes_installed.rc != 0
+
+- name: Show Hermes version output
+  ansible.builtin.debug:
+    msg: >-
+      Hermes version rc={{ hermes_version.rc }} stdout={{ hermes_version.stdout_lines | default([]) }} stderr={{ hermes_version.stderr_lines | default([]) }}
+  when: hermes_installed.rc != 0
+  changed_when: false
+
+- name: Cleanup Hermes installer
+  ansible.builtin.file:
+    path: /tmp/hermes-install.sh
+    state: absent
+  when: hermes_installed.rc != 0
+  become: true

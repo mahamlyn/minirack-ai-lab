@@ -67,7 +67,10 @@
   become_user: root
   vars_files:
     - ./config-files/config.yaml
-  
+
   tasks:
     - name: Open WebUI Installation | Include openweb installation tasks
       ansible.builtin.import_tasks: tasks/app-openweb.yaml
+
+    - name: Hermes Installation | Include hermes installation tasks
+      ansible.builtin.import_tasks: tasks/app-hermes.yaml
