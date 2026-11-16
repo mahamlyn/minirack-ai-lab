@@ -52,11 +52,13 @@
     regexp: '^#PermitEmptyPasswords'
     line: 'PermitEmptyPasswords no'
 
-- name: Allow TCP Forwarding
+- name: Disable SSH TCP Forwarding for security
   ansible.builtin.lineinfile:
     path: /etc/ssh/sshd_config
     regexp: '^#AllowTcpForwarding'
     line: 'AllowTcpForwarding no'
+  # Note: This prevents SSH port forwarding/tunneling (e.g., ssh -L, ssh -R)
+  # Users will not be able to create SSH tunnels if this is set to 'no'
 
 - name: X11Forwarding
   ansible.builtin.lineinfile:
@@ -69,6 +71,12 @@
     path: /etc/ssh/sshd_config
     regexp: '^#UseDNS'
     line: 'UseDNS no'
+
+# Validate SSH configuration before restarting service
+- name: Validate SSH configuration syntax
+  ansible.builtin.command:
+    cmd: sshd -t
+  changed_when: false
 
 # Start the SSH service
 - name: Services | Start ssh Service
