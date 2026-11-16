@@ -1,3 +1,12 @@
 docker_admin_user: docker-admin
 ollama_model: llama3.2
 ollama_host: 0.0.0.0:11434
+
+# Hermes Agent Configuration
+# SECURITY: The checksum is used to verify installer integrity before execution.
+# To obtain the current checksum of the Hermes installer:
+#   sha256sum install.sh
+# Or download and verify:
+#   curl -sL https://hermes-agent.nousresearch.com/install.sh | sha256sum
+# Update this value whenever the official installer is updated.
+hermes_install_checksum: "sha256:PLACEHOLDER_CHECKSUM_VALUE"

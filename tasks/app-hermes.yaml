@@ -1,5 +1,7 @@
 ---
 # Tasks to install Hermes agent
+# SECURITY NOTE: This task downloads and executes a third-party installer script.
+# Checksum verification is performed to validate installer integrity.
 
 - name: Check for existing Hermes agent
   ansible.builtin.command:
@@ -13,8 +15,7 @@
     url: https://hermes-agent.nousresearch.com/install.sh
     dest: /tmp/hermes-install.sh
     mode: '0755'
-    # Optional checksum variable (set in play or inventory): hermes_install_checksum
-    checksum: "{{ hermes_install_checksum | default(omit) }}"
+    checksum: "{{ hermes_install_checksum }}"
   when: hermes_installed.rc != 0
   become: true
 
