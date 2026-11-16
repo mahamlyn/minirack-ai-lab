@@ -1,6 +1,29 @@
 # AI Lab Ansible Playbook - This playbook deploys Ollama and other AI tools to the specified hosts in the inventory.
 
 # =============================================================================================================
+# Deployment Start - Log deployment initialization timestamp for tracking and auditing.
+# =============================================================================================================
+- name: Deployment Initialization
+  hosts: localhost
+  gather_facts: false
+  connection: local
+
+  tasks:
+    - name: Deployment Start | Log deployment start timestamp
+      ansible.builtin.debug:
+        msg: "🚀 AI Lab Deployment started at {{ ansible.date_time.iso8601_basic_short }} on {{ ansible.date_time.date }}"
+      vars:
+        ansible.date_time: "{{ ansible.date_time }}"
+
+    - name: Deployment Start | Create deployment log file
+      ansible.builtin.file:
+        path: "/tmp/ai-lab-deployment-{{ ansible.date_time.iso8601_basic_short }}.log"
+        state: touch
+        mode: '0644'
+      vars:
+        ansible.date_time: "{{ ansible.date_time }}"
+
+# =============================================================================================================
 # System Preparation - Prepare the base operating system and required system configuration.
 # =============================================================================================================
 - name: System Preparation
@@ -72,5 +95,64 @@
     - name: Open WebUI Installation | Include openweb installation tasks
       ansible.builtin.import_tasks: tasks/app-openweb.yaml
 
-    - name: Hermes Installation | Include hermes installation tasks
+# =============================================================================================================
+# Hermes Agent Installation - Deploy the Hermes automation agent on the web host.
+# =============================================================================================================
+- name: Hermes Agent Installation
+  hosts:
+    - ai-web
+  gather_facts: true
+  become: true
+  become_method: ansible.builtin.sudo
+  become_user: root
+  vars_files:
+    - ./config-files/config.yaml
+
+  tasks:
+    - name: Hermes Agent Installation | Include hermes installation tasks
       ansible.builtin.import_tasks: tasks/app-hermes.yaml
+
+# =============================================================================================================
+# Deployment Completion - Log deployment completion timestamp and summary for tracking and auditing.
+# =============================================================================================================
+- name: Deployment Completion
+  hosts: localhost
+  gather_facts: false
+  connection: local
+
+  tasks:
+    - name: Deployment Completion | Log deployment end timestamp
+      ansible.builtin.debug:
+        msg: "✅ AI Lab Deployment completed at {{ ansible.date_time.iso8601_basic_short }} on {{ ansible.date_time.date }}"
+      vars:
+        ansible.date_time: "{{ ansible.date_time }}"
+
+    - name: Deployment Completion | Display deployment summary
+      ansible.builtin.debug:
+        msg: |
+          ========================================
+          🎉 Deployment Summary
+          ========================================
+          Completion Time: {{ ansible.date_time.iso8601_basic_short }}
+          Date: {{ ansible.date_time.date }}
+          
+          Deployed Hosts:
+            - ai-core (Ollama LLM Runtime)
+            - ai-web (Open WebUI + Hermes Agent)
+            - ai-utility (Monitoring & Utilities)
+          
+          Services Deployed:
+            ✓ System patches and configuration
+            ✓ Ollama LLM runtime engine
+            ✓ Open WebUI interface
+            ✓ Hermes automation agent
+            ✓ Docker and container runtime
+          
+          Next Steps:
+            1. Verify all services are running
+            2. Configure authentication (WebUI_AUTH)
+            3. Test AI model inference
+            4. Review deployment logs: /tmp/ai-lab-deployment-*.log
+          ========================================
+      vars:
+        ansible.date_time: "{{ ansible.date_time }}"

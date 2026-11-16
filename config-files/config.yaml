@@ -1,5 +1,21 @@
 docker_admin_user: docker-admin
+
+# Ollama LLM Configuration
+# CUSTOMIZATION: Change this to any Ollama-supported model (e.g., llama2, neural-chat, mistral, orca-mini)
+# Models available at: https://ollama.ai/library
+# Recommended models for different use cases:
+#   - llama3.2: General purpose, good balance of speed and quality (default)
+#   - mistral: Faster inference, good for real-time applications
+#   - llama2: Alternative to llama3.2, slightly smaller
+#   - neural-chat: Optimized for chat-like interactions
+#   - orca-mini: Very small and fast, good for resource-constrained systems
+# To override via command line: ansible-playbook main.yml -e "ollama_model=mistral"
 ollama_model: llama3.2
+
+# Ollama Host Binding Configuration
+# SECURITY WARNING: 0.0.0.0:11434 exposes Ollama to network. See documentation/SECURITY.md
+# For secure deployments, bind to localhost only: ollama_host: 127.0.0.1:11434
+# Or restrict access via firewall rules
 ollama_host: 0.0.0.0:11434
 
 # Hermes Agent Configuration

@@ -36,12 +36,6 @@
     group: root
 
 # =============================================================================================================
-# Compute & Storage Validation - Check that the target system has sufficient resources to run OpenWebUI.
-# =============================================================================================================
-
-# NOTE: Docker free-space pre-check removed per request. Ensure target has sufficient disk space for image extraction.
-
-# =============================================================================================================
 # Docker Compose - Use Docker Compose to deploy the OpenWebUI service.
 # =============================================================================================================
 
